@@ -1,0 +1,1915 @@
+#Scope layout:
+# this = the country who owns the borders we a re coloring
+# from = the country who we are coloring for, usually the player
+
+#example = {
+#	icon = "GFX_some_icon"				-- which icon to use in the main gui
+#	hardcoded_tooltip = opinion		-- override tooltip generation with a hardcoded method. Currently supported: opinion
+#	can_change_point_of_view = yes		-- can the player click on other empires to see the map mode from their point of view?
+#	enable_terra_incognita = yes		-- should terra incognita be rendered when this map mode is active?
+#	display_claims = no					-- Should claims be displayed?
+#	display_espionage_operations = no	-- Should active Espionage Operations be displayed?
+#
+#		color = {								-- the bread and butter of the map modes. A country will be colored with the first color block who's condition is met
+#		type = borders						-- Possible values: borders, country or country_and_borders. Default is country_and_borders
+#		value = hsv { 1.0 0.0 0.0 1.0 }		-- you can also use rgb { 255 0 0 255 }
+#		custom_tooltip = "SOME_STRING"		-- Tooltip to be shown if this is the selected color. suports [This.GetName] etc
+#		condition = {
+#			...							-- simple AND trigger for evaluation. Will also generate a tooltip if neither hardcoded_tooltip or custom_tooltip is defined
+#		}
+#		zoom = 1300						-- Will only be applied when zoomed out more than this value (like empire logos that are only shown at zoom > 600)
+#		filter = union						-- Will only be applied if this map filter is active. Possible values: unions, players, sectors, hyperlanes, trade_routes.
+#	}
+#}
+
+###########################################################
+# 戦争マップ
+###########################################################
+custom_map_war_mode = {
+	icon = "GFX_map_mode_war"
+	enable_terra_incognita = yes
+	can_change_point_of_view = yes
+
+	# カレント(青色)
+	color = { value = hsv { 0.0 0.0 0.8 0.7 } condition = { NOT = { exists = FROM } } custom_tooltip = "MAP_MODE_OBSERVER" }
+	color = { value = hsv { 0.580 1.0 0.8 1.0 } condition = { is_same_empire = FROM } }
+
+	# 敵側として戦争に参加中
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = {
+			is_at_war_with = from
+		}
+		custom_tooltip = "WAR_MODE_FOE_COUNTRY"
+	}
+
+	# 味方側として戦争に参加中
+	color = {
+		value = rgb { 0 255 0 0 }
+		condition = {
+			any_war = { is_war_participant = { who = from side = root } }
+		}
+		custom_tooltip = "WAR_MODE_FRIEND_COUNTRY"
+	}
+
+	# 対象国と戦争はしていないが国境を封鎖中
+	color = {
+		value = rgb { 255 255 0 0 }
+		condition = {
+			hidden_trigger = {
+				not = { has_truce = from }
+				OR = {
+					has_closed_borders = from
+					is_rival = from
+				}
+			}
+		}
+		custom_tooltip = "WAR_MODE_CLOSED_BORDERS"
+	}
+
+	# 外交の自由がない従属国の場合、国境封鎖のチェックは宗主国の設定に従う
+	color = {
+		value = rgb { 255 255 0 0 }
+		condition = {
+			hidden_trigger = {
+				is_subject = yes
+				subject_can_diplomacy = no
+				any_country = {
+					is_overlord_to = root
+					AND = {
+						NOR = {
+							is_at_war_with = from
+							any_war = { is_war_participant = { who = from side = prev } }
+							has_truce = from
+						}
+						OR = {
+							has_closed_borders = from
+							is_rival = from
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = "WAR_MODE_CLOSED_BORDERS"
+	}
+
+	# デフォルト
+	color = { value = rgb { 255 255 255 0 } condition = { always = yes } custom_tooltip = WAR_MODE_NO_WAR }
+}
+
+###########################################################
+# 連邦マップ
+###########################################################
+custom_map_alliance_mode = {
+	icon = "GFX_map_mode_unions"
+	enable_terra_incognita = yes
+	can_change_point_of_view = no
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 0 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 1 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 2 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 3 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 4 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 5 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 6 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 7 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 8 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 9 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 10 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 11 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 12 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 13 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 14 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 15 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 16 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 17 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 18 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 19 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 20 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 21 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 22 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 23 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 24 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 25 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 26 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 27 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 28 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 29 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 255 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 30 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 31 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 32 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 33 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 34 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 35 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 36 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 37 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 38 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 39 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 40 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 41 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 42 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 43 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 44 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 45 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 46 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 47 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 48 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 49 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 50 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 51 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 52 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 53 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 54 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 55 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 56 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 57 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 58 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 59 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 60 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 61 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 255 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 62 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 63 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 64 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 65 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 66 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 67 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 68 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 69 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 70 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 71 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 72 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 73 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 74 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 75 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 76 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 77 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 78 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 79 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 80 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 81 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 82 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 83 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 84 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 85 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 86 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 87 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 88 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 89 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 90 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 91 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 92 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 255 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 93 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 94 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 95 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 96 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 97 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 98 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 99 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 100 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 101 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 102 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 103 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 104 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 105 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 106 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 107 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 108 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 109 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 110 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 111 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 112 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 113 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 114 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 115 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 116 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 117 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 118 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 119 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 128 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 120 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 64 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 121 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 0 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 122 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 255 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 123 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 255 192 0 }
+		condition = { check_variable = { which = custom_map_alliance_number value = 124 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = country
+		condition = { always = yes }
+		hardcoded_tooltip = country
+	}
+}
+
+###########################################################
+# 帝国マップ
+###########################################################
+custom_map_empire_mode = {
+	icon = "GFX_map_mode_default"
+	enable_terra_incognita = yes
+	can_change_point_of_view = no
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 0 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 1 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 2 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 3 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 4 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 5 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 6 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 7 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 8 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 9 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 10 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 11 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 12 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 13 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 14 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 15 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 16 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 17 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 18 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 19 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 20 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 21 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 22 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 23 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 24 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 25 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 26 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 27 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 28 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 29 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 255 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 30 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 31 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 32 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 33 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 34 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 35 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 36 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 37 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 38 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 39 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 40 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 41 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 42 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 43 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 44 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 45 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 46 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 47 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 48 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 49 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 50 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 51 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 52 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 53 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 54 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 55 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 56 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 57 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 58 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 59 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 60 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 61 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 255 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 62 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 63 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 64 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 65 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 66 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 67 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 68 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 69 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 70 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 71 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 72 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 73 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 74 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 75 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 76 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 77 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 78 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 79 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 80 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 81 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 82 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 83 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 84 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 85 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 86 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 87 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 88 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 89 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 90 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 91 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 92 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 255 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 93 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 0 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 94 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 64 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 95 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 128 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 96 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 97 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 192 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 98 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 0 255 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 99 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 0 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 100 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 64 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 101 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 102 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 128 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 103 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 192 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 104 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 64 255 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 105 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 0 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 106 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 107 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 64 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 108 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 128 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 109 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 192 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 110 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 128 255 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 111 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 112 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 0 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 113 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 64 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 114 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 128 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 115 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 192 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 116 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 117 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 192 255 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 118 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 0 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 119 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 64 128 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 120 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 128 64 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 121 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 0 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 122 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 192 255 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 123 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = rgb { 255 255 192 0 }
+		condition = { check_variable = { which = custom_map_country_number value = 124 } }
+		hardcoded_tooltip = country
+	}
+	color = {
+		value = country
+		condition = { always = yes }
+		hardcoded_tooltip = country
+	}
+}
+
+###########################################################
+# 相対国力モード
+###########################################################
+# 相対国力(艦隊戦力)
+custom_map_relative_fleet_mode = {
+	icon = "GFX_map_mode_fleet"
+	enable_terra_incognita = yes
+	can_change_point_of_view = yes
+
+	# カレント(青色)
+	color = { value = hsv { 0.0 0.0 0.8 0.7 } condition = { NOT = { exists = FROM } } custom_tooltip = "MAP_MODE_OBSERVER" }
+	color = { value = hsv { 0.580 1.0 0.8 1.0 } condition = { is_same_empire = FROM } }
+
+	###
+	# 色づけ不要
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				root = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				from = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+
+	###
+	# 情報値不足
+	# ※情報値はプレイヤー国家自身のものを参照して確認する
+	# 他の国家(青)とプレイヤー国家との比較の場合
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			root = {
+				is_ai = no
+				intel = { who = from value < 30 }
+			}
+		}
+		custom_tooltip = "RELATIVE_FLEET_MODE_UNKNOWN"
+	}
+	# プレイヤー国家(青)と他の国家との比較の場合
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			from = {
+				is_ai = no
+				intel = { who = root value < 30 }
+			}
+		}
+		custom_tooltip = "RELATIVE_FLEET_MODE_UNKNOWN"
+	}
+	# 他の国家同士での比較の場合
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			root = { is_ai = yes }
+			from = { is_ai = yes }
+			any_country = {
+				is_ai = no
+				OR = {
+					intel = { who = root value < 30 }
+					intel = { who = from value < 30 }
+				}
+			}
+		}
+		custom_tooltip = "RELATIVE_FLEET_MODE_UNKNOWN"
+	}
+
+	###
+	# 国力比較
+	# 悲惨(緑) ～ 圧倒(赤)
+	###
+	# 悲惨
+	color = {
+		value = rgb { 0 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = fleet value = pathetic }
+		}
+		custom_tooltip = "RELATIVE_FLEET_MODE_PATHETIC"
+	}
+	# 劣等
+	color = {
+		value = rgb { 128 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = fleet value = inferior }
+		}
+		custom_tooltip = "RELATIVE_FLEET_MODE_INFERIOR"
+	}
+	# 同等
+	color = {
+		value = rgb { 255 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = fleet value = equivalent }
+		}
+		custom_tooltip = "RELATIVE_FLEET_MODE_EQUIVALENT"
+	}
+	# 優越
+	color = {
+		value = rgb { 255 128 0 0 }
+		condition = {
+			relative_power = { who = FROM category = fleet value = superior }
+		}
+		custom_tooltip = "RELATIVE_FLEET_MODE_SUPERIOR"
+	}
+	# 圧倒
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = {
+			relative_power = { who = FROM category = fleet value = overwhelming }
+		}
+		custom_tooltip = "RELATIVE_FLEET_MODE_OVERWHELMING"
+	}
+
+	# デフォルト
+	color = { value = rgb { 255 255 255 0 } condition = { always = yes } hardcoded_tooltip = opinion }
+}
+
+# 相対国力(経済力)
+custom_map_relative_economy_mode = {
+	icon = "GFX_map_mode_economy"
+	enable_terra_incognita = yes
+	can_change_point_of_view = yes
+
+	# カレント(青色)
+	color = { value = hsv { 0.0 0.0 0.8 0.7 } condition = { NOT = { exists = FROM } } custom_tooltip = "MAP_MODE_OBSERVER" }
+	color = { value = hsv { 0.580 1.0 0.8 1.0 } condition = { is_same_empire = FROM } }
+
+	###
+	# 色づけ不要
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				root = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				from = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+
+	###
+	# 情報値不足
+	# ※情報値はプレイヤー国家自身のものを参照して確認する
+	# 他の国家(青)とプレイヤー国家との比較の場合
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			root = {
+				is_ai = no
+				intel = { who = from value < 30 }
+			}
+		}
+		custom_tooltip = "RELATIVE_ECONOMY_MODE_UNKNOWN"
+	}
+	# プレイヤー国家(青)と他の国家との比較の場合
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			from = {
+				is_ai = no
+				intel = { who = root value < 30 }
+			}
+		}
+		custom_tooltip = "RELATIVE_ECONOMY_MODE_UNKNOWN"
+	}
+	# 他の国家同士での比較の場合
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			root = { is_ai = yes }
+			from = { is_ai = yes }
+			any_country = {
+				is_ai = no
+				OR = {
+					intel = { who = root value < 30 }
+					intel = { who = from value < 30 }
+				}
+			}
+		}
+		custom_tooltip = "RELATIVE_ECONOMY_MODE_UNKNOWN"
+	}
+
+	###
+	# 国力比較
+	# 悲惨(緑) ～ 圧倒(赤)
+	###
+	# 悲惨
+	color = {
+		value = rgb { 0 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = economy value = pathetic }
+		}
+		custom_tooltip = "RELATIVE_ECONOMY_MODE_PATHETIC"
+	}
+	# 劣等
+	color = {
+		value = rgb { 128 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = economy value = inferior }
+		}
+		custom_tooltip = "RELATIVE_ECONOMY_MODE_INFERIOR"
+	}
+	# 同等
+	color = {
+		value = rgb { 255 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = economy value = equivalent }
+		}
+		custom_tooltip = "RELATIVE_ECONOMY_MODE_EQUIVALENT"
+	}
+	# 優越
+	color = {
+		value = rgb { 255 128 0 0 }
+		condition = {
+			relative_power = { who = FROM category = economy value = superior }
+		}
+		custom_tooltip = "RELATIVE_ECONOMY_MODE_SUPERIOR"
+	}
+	# 圧倒
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = {
+			relative_power = { who = FROM category = economy value = overwhelming }
+		}
+		custom_tooltip = "RELATIVE_ECONOMY_MODE_OVERWHELMING"
+	}
+
+	# デフォルト
+	color = { value = rgb { 255 255 255 0 } condition = { always = yes } hardcoded_tooltip = opinion }
+}
+
+# 相対国力(技術力)
+custom_map_relative_technology_mode = {
+	icon = "GFX_map_mode_technology"
+	enable_terra_incognita = yes
+	can_change_point_of_view = yes
+
+	# カレント(青色)
+	color = { value = hsv { 0.0 0.0 0.8 0.7 } condition = { NOT = { exists = FROM } } custom_tooltip = "MAP_MODE_OBSERVER" }
+	color = { value = hsv { 0.580 1.0 0.8 1.0 } condition = { is_same_empire = FROM } }
+
+	###
+	# 色づけ不要
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				root = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				from = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+
+	###
+	# 情報値不足
+	# ※情報値はプレイヤー国家自身のものを参照して確認する
+	# 他の国家(青)とプレイヤー国家との比較の場合
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			root = {
+				is_ai = no
+				intel = { who = from value < 30 }
+			}
+		}
+		custom_tooltip = "RELATIVE_TECHNOLOGY_MODE_UNKNOWN"
+	}
+	# プレイヤー国家(青)と他の国家との比較の場合
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			from = {
+				is_ai = no
+				intel = { who = root value < 30 }
+			}
+		}
+		custom_tooltip = "RELATIVE_TECHNOLOGY_MODE_UNKNOWN"
+	}
+	# 他の国家同士での比較の場合
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			root = { is_ai = yes }
+			from = { is_ai = yes }
+			any_country = {
+				is_ai = no
+				OR = {
+					intel = { who = root value < 30 }
+					intel = { who = from value < 30 }
+				}
+			}
+		}
+		custom_tooltip = "RELATIVE_TECHNOLOGY_MODE_UNKNOWN"
+	}
+
+	###
+	# 国力比較
+	# 悲惨(緑) ～ 圧倒(赤)
+	###
+	# 悲惨
+	color = {
+		value = rgb { 0 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = technology value = pathetic }
+		}
+		custom_tooltip = "RELATIVE_TECHNOLOGY_MODE_PATHETIC"
+	}
+	# 劣等
+	color = {
+		value = rgb { 128 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = technology value = inferior }
+		}
+		custom_tooltip = "RELATIVE_TECHNOLOGY_MODE_INFERIOR"
+	}
+	# 同等
+	color = {
+		value = rgb { 255 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = technology value = equivalent }
+		}
+		custom_tooltip = "RELATIVE_TECHNOLOGY_MODE_EQUIVALENT"
+	}
+	# 優越
+	color = {
+		value = rgb { 255 128 0 0 }
+		condition = {
+			relative_power = { who = FROM category = technology value = superior }
+		}
+		custom_tooltip = "RELATIVE_TECHNOLOGY_MODE_SUPERIOR"
+	}
+	# 圧倒
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = {
+			relative_power = { who = FROM category = technology value = overwhelming }
+		}
+		custom_tooltip = "RELATIVE_TECHNOLOGY_MODE_OVERWHELMING"
+	}
+
+	# デフォルト
+	color = { value = rgb { 255 255 255 0 } condition = { always = yes } hardcoded_tooltip = opinion }
+}
+
+# 相対国力(総合)
+custom_map_relative_all_mode = {
+	icon = "GFX_map_mode_relative_all"
+	enable_terra_incognita = yes
+	can_change_point_of_view = yes
+
+	# カレント(青色)
+	color = { value = hsv { 0.0 0.0 0.8 0.7 } condition = { NOT = { exists = FROM } } custom_tooltip = "MAP_MODE_OBSERVER" }
+	color = { value = hsv { 0.580 1.0 0.8 1.0 } condition = { is_same_empire = FROM } }
+
+	###
+	# 色づけ不要
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				root = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				from = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+
+	###
+	# 情報値不足
+	# ※情報値はプレイヤー国家自身のものを参照して確認する
+	# 他の国家(青)とプレイヤー国家との比較の場合
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			root = {
+				is_ai = no
+				intel = { who = from value < 20 }
+			}
+		}
+		custom_tooltip = "RELATIVE_ALL_MODE_UNKNOWN"
+	}
+	# プレイヤー国家(青)と他の国家との比較の場合
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			from = {
+				is_ai = no
+				intel = { who = root value < 20 }
+			}
+		}
+		custom_tooltip = "RELATIVE_ALL_MODE_UNKNOWN"
+	}
+	# 他の国家同士での比較の場合
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			root = { is_ai = yes }
+			from = { is_ai = yes }
+			any_country = {
+				is_ai = no
+				OR = {
+					intel = { who = root value < 20 }
+					intel = { who = from value < 20 }
+				}
+			}
+		}
+		custom_tooltip = "RELATIVE_ALL_MODE_UNKNOWN"
+	}
+
+	###
+	# 国力比較
+	# 悲惨(緑) ～ 圧倒(赤)
+	###
+	# 悲惨
+	color = {
+		value = rgb { 0 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = all value = pathetic }
+		}
+		custom_tooltip = "RELATIVE_ALL_MODE_PATHETIC"
+	}
+	# 劣等
+	color = {
+		value = rgb { 128 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = all value = inferior }
+		}
+		custom_tooltip = "RELATIVE_ALL_MODE_INFERIOR"
+	}
+	# 同等
+	color = {
+		value = rgb { 255 255 0 0 }
+		condition = {
+			relative_power = { who = FROM category = all value = equivalent }
+		}
+		custom_tooltip = "RELATIVE_ALL_MODE_EQUIVALENT"
+	}
+	# 優越
+	color = {
+		value = rgb { 255 128 0 0 }
+		condition = {
+			relative_power = { who = FROM category = all value = superior }
+		}
+		custom_tooltip = "RELATIVE_ALL_MODE_SUPERIOR"
+	}
+	# 圧倒
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = {
+			relative_power = { who = FROM category = all value = overwhelming }
+		}
+		custom_tooltip = "RELATIVE_ALL_MODE_OVERWHELMING"
+	}
+
+	# デフォルト
+	color = { value = rgb { 255 255 255 0 } condition = { always = yes } hardcoded_tooltip = opinion }
+}

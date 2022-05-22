@@ -1,0 +1,21 @@
+###############################################################################
+# 布告メニューの項目設定
+###############################################################################
+custom_map_mode_menu = {
+	length = 0
+	icon = "GFX_research_icon"
+
+	potential = {
+		is_ai = no
+	}
+
+	effect = {
+		hidden_effect = {
+			country_event = { id = custom_map.1 }
+		}
+	}
+
+	ai_weight = {
+		weight = 0
+	}
+}
