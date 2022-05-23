@@ -26,3 +26,83 @@ custom_map_mode_is_target_country = {
 	}
 	is_pirate = no
 }
+
+#################################################
+# 同盟マップの対象カラーのチェック用
+# SCOPE: COUNTRY
+# PARAMETER:
+#  COUNTRY_NUMBER: 帝国マップの管理番号
+#################################################
+custom_map_mode_check_alliance_number = {
+	OR = {
+		# 連邦所属でも従属国でもない場合は、自分自身の値で比較する
+		AND = {
+			has_federation = no
+			is_subject = no
+			check_variable = { which = custom_map_country_number value = $COUNTRY_NUMBER$ }
+		}
+		# 連邦リーダーの場合は、自分自身の値で比較する
+		AND = {
+			has_federation = yes
+			is_federation_leader = yes
+			check_variable = { which = custom_map_country_number value = $COUNTRY_NUMBER$ }
+		}
+		# 連邦所属の場合は、連邦リーダーの値で比較する
+		AND = {
+			has_federation = yes
+			is_federation_leader = no
+			any_federation_ally = {
+				is_federation_leader = yes
+				check_variable = { which = custom_map_country_number value = $COUNTRY_NUMBER$ }
+			}
+		}
+		# 従属国かつ宗主国が連邦所属出ない場合は、宗主国の値で比較する
+		AND = {
+			has_federation = no
+			is_subject = yes
+			any_country = {
+				is_overlord_to = root
+				has_federation = no
+				check_variable = { which = custom_map_country_number value = $COUNTRY_NUMBER$ }
+			}
+		}
+		# 従属国かつ宗主国が連邦リーダーの場合は、宗主国の値で比較する
+		AND = {
+			has_federation = no
+			is_subject = yes
+			any_country = {
+				is_overlord_to = root
+				has_federation = yes
+				is_federation_leader = yes
+				check_variable = { which = custom_map_country_number value = $COUNTRY_NUMBER$ }
+			}
+		}
+		# 従属国かつ宗主国が連邦所属の場合は、宗主国の所属する連邦リーダーの値で比較する
+		AND = {
+			has_federation = no
+			is_subject = yes
+			any_country = {
+				is_overlord_to = root
+				has_federation = yes
+				is_federation_leader = no
+				any_federation_ally = {
+					is_federation_leader = yes
+					check_variable = { which = custom_map_country_number value = $COUNTRY_NUMBER$ }
+				}
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

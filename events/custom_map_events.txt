@@ -4,7 +4,7 @@
 namespace = custom_map
 
 ###########################################################
-# 全ての国家について、同盟、帝国マップ用のパラメータを設定する
+# 全ての国家について、帝国マップ用のパラメータを設定する
 ###########################################################
 country_event = {
 	id = custom_map.1
@@ -24,20 +24,11 @@ country_event = {
 			}
 			custom_map_mode_add_country_number = yes
 		}
-
-		# 同盟マップ用パラメータの付与
-		every_country = {
-			limit = {
-				custom_map_mode_is_target_country = yes
-			}
-			custom_map_mode_add_alliance_number = yes
-		}
 	}
 }
 
-
 ###########################################################
-# 対象の国家について、同盟、帝国マップ用のパラメータを設定する
+# 対象の国家について、帝国マップ用のパラメータを設定する
 ###########################################################
 country_event = {
 	id = custom_map.2
@@ -50,90 +41,8 @@ country_event = {
 
 	immediate = {
 		custom_map_mode_add_country_number = yes
-		custom_map_mode_add_alliance_number = yes
 	}
 }
-
-###########################################################
-# 生成した国家の同盟マップ用のパラメータを更新する
-#
-# 補足)従属化イベント用
-#   on_becoming_subjectでイベント発火したタイミングでは
-#   まだis_overlord_toで結果がとれないため、
-#   custom_map_mode_add_alliance_numberを使えない
-#   そのためcustom_map.2とは処理を分けている
-#
-# This = subject
-# From = subject's overlord
-###########################################################
-country_event = {
-	id = custom_map.3
-	hide_window = yes
-	is_triggered_only = yes
-
-	immediate = {
-		from = {
-			if = {
-				limit = {
-					has_federation = yes
-					is_federation_leader = no
-				}
-				random_federation_ally = {
-					limit = { is_federation_leader = yes }
-					save_event_target_as = custom_map_leader_country
-				}
-			} else = {
-				save_event_target_as = custom_map_leader_country
-			}
-		}
-		set_variable = { which = custom_map_alliance_number value = event_target:custom_map_leader_country.custom_map_country_number }
-	}
-}
-
-###########################################################
-# 全ての国家について、同盟マップ用のパラメータを再設定する
-# 国家が滅んだ時用
-###########################################################
-country_event = {
-	id = custom_map.4
-	hide_window = yes
-	is_triggered_only = yes
-
-	trigger = {
-		custom_map_mode_is_target_country = yes
-	}
-
-	immediate = {
-		country_event = { id = custom_map.5 days = 1 }
-	}
-}
-
-
-###########################################################
-# 全ての国家について、同盟マップ用のパラメータを再設定する
-# 帝国マップのパラメータはそのまま
-###########################################################
-country_event = {
-	id = custom_map.5
-	hide_window = yes
-	is_triggered_only = yes
-
-	trigger = {
-		custom_map_mode_is_target_country = yes
-	}
-
-	immediate = {
-		# 同盟マップ用パラメータの付与
-		every_country = {
-			limit = {
-				custom_map_mode_is_target_country = yes
-			}
-			custom_map_mode_add_alliance_number = yes
-		}
-	}
-}
-
-
 
 ###########################################################
 # デバッグ用
@@ -159,7 +68,15 @@ country_event = {
 			log = "-----"
 			log = "\\[This.GetRealName]"
 			log = "\\[This.custom_map_country_number]"
-			log = "\\[This.custom_map_alliance_number]"
+		}
+
+		if = {
+			limit = { exists = event_target:custom_map_last_country }
+			event_target:custom_map_last_country = {
+				log = "-----last_country"
+				log = "\\[This.GetRealName]"
+				log = "\\[This.custom_map_country_number]"
+			}
 		}
 	}
 }

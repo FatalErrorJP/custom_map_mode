@@ -6,13 +6,6 @@
 # 従属国の独立については、何故かon_actionsに対応するものがなかったため、
 # 直接各コードを上書きする形で対応しています。以下を参照してください。
 #
-# common\diplomatic_actions (外交交渉)
-# ・action_release_subject:宗主国側の従属国の解放
-# ・action_ask_to_be_released_subject:従属国側の宗主国への独立要求
-#
-# common\war_goals (戦争)
-# ・wg_independence:独立戦争
-#
 ###############################################################################
 
 #######################################
@@ -35,71 +28,5 @@ on_press_begin = {
 on_country_created = {
 	events = {
 		custom_map.2
-	}
-}
-
-#######################################
-# 国家滅亡時のイベント
-#######################################
-#This = destroyed country
-#From = optional, destroyer (country)
-on_country_destroyed = {
-	events = {
-		custom_map.4
-	}
-}
-
-#######################################
-# 従属時のイベント
-#######################################
-# This = subject
-# From = subject's overlord
-on_becoming_subject = {
-	events = {
-		custom_map.3
-	}
-}
-
-#######################################
-# セクターの属国化時のイベント
-#######################################
-# This = released vassal
-# From = overlord
-on_released_as_vassal = {
-	events = {
-		custom_map.2
-	}
-}
-
-#######################################
-# 連邦へ参加する時のイベント
-#######################################
-#This = Federation leader
-#From = Joining member
-on_join_federation = {
-	events = {
-		custom_map.5
-	}
-}
-
-#######################################
-# 連邦から抜ける時のイベント
-#######################################
-#This = Federation leader
-#From = Leaving member
-on_leave_federation = {
-	events = {
-		custom_map.5
-	}
-}
-
-#######################################
-# 連邦リーダーの変更時のイベント
-#######################################
-#This = Country scope, new federation leader
-#From = Previous leader (if still existing)
-on_federation_new_leader = {
-	events = {
-		custom_map.5
 	}
 }
