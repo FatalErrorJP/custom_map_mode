@@ -29,10 +29,103 @@ custom_map_war_mode = {
 	icon = "GFX_map_mode_war"
 	enable_terra_incognita = yes
 	can_change_point_of_view = yes
+	display_claims = yes
+	display_espionage_operations = no
 
 	# カレント(青色)
 	color = { value = hsv { 0.0 0.0 0.8 0.7 } condition = { NOT = { exists = FROM } } custom_tooltip = "MAP_MODE_OBSERVER" }
 	color = { value = hsv { 0.580 1.0 0.8 1.0 } condition = { is_same_empire = FROM } }
+
+	###
+	# 危機帝国
+	###
+	# 大ハーンの従属国は、大ハーンとは敵対しない
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			is_country_type = awakened_marauders
+			any_subject = {
+				is_same_value = from
+			}
+		}
+		custom_tooltip = "WAR_MODE_NO_WAR"
+	}
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			from = {
+				is_country_type = awakened_marauders
+				any_subject = {
+					is_same_value = root
+				}
+			}
+		}
+		custom_tooltip = "WAR_MODE_NO_WAR"
+	}
+
+	# 危機とそれ以外は原則敵対する
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = {
+			OR = {
+				is_country_type = awakened_marauders
+				is_country_type = swarm
+				is_country_type = extradimensional
+				is_country_type = extradimensional_2
+				is_country_type = extradimensional_3
+				is_country_type = ai_empire
+			}
+		}
+		custom_tooltip = "WAR_MODE_FOE_COUNTRY"
+	}
+	color = {
+		value = rgb { 255 0 0 0 }
+		condition = {
+			from = {
+				OR = {
+					is_country_type = awakened_marauders
+					is_country_type = swarm
+					is_country_type = extradimensional
+					is_country_type = extradimensional_2
+					is_country_type = extradimensional_3
+					is_country_type = ai_empire
+				}
+			}
+		}
+		custom_tooltip = "WAR_MODE_FOE_COUNTRY"
+	}
+
+	###
+	# 色づけ不要
+	###
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				root = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
+	color = {
+		value = rgb { 255 255 255 0 }
+		condition = {
+			hidden_trigger = {
+				from = {
+					NOR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+		}
+	}
 
 	# 敵側として戦争に参加中
 	color = {
@@ -52,40 +145,36 @@ custom_map_war_mode = {
 		custom_tooltip = "WAR_MODE_FRIEND_COUNTRY"
 	}
 
-	# 対象国と戦争はしていないが国境を封鎖中
+	# 対象国と戦争はしていないが国境を閉鎖中
 	color = {
 		value = rgb { 255 255 0 0 }
 		condition = {
-			hidden_trigger = {
-				not = { has_truce = from }
-				OR = {
-					has_closed_borders = from
-					is_rival = from
-				}
+			not = { has_truce = from }
+			OR = {
+				has_closed_borders = from
+				is_rival = from
 			}
 		}
 		custom_tooltip = "WAR_MODE_CLOSED_BORDERS"
 	}
 
-	# 外交の自由がない従属国の場合、国境封鎖のチェックは宗主国の設定に従う
+	# 外交の自由がない従属国の場合、国境閉鎖のチェックは宗主国の設定に従う
 	color = {
 		value = rgb { 255 255 0 0 }
 		condition = {
-			hidden_trigger = {
-				is_subject = yes
-				subject_can_diplomacy = no
-				any_country = {
-					is_overlord_to = root
-					AND = {
-						NOR = {
-							is_at_war_with = from
-							any_war = { is_war_participant = { who = from side = prev } }
-							has_truce = from
-						}
-						OR = {
-							has_closed_borders = from
-							is_rival = from
-						}
+			is_subject = yes
+			subject_can_diplomacy = no
+			any_country = {
+				is_overlord_to = root
+				AND = {
+					NOR = {
+						is_at_war_with = from
+						any_war = { is_war_participant = { who = from side = prev } }
+						has_truce = from
+					}
+					OR = {
+						has_closed_borders = from
+						is_rival = from
 					}
 				}
 			}
@@ -94,7 +183,7 @@ custom_map_war_mode = {
 	}
 
 	# デフォルト
-	color = { value = rgb { 255 255 255 0 } condition = { always = yes } custom_tooltip = WAR_MODE_NO_WAR }
+	color = { value = rgb { 255 255 255 0 } condition = { always = yes } custom_tooltip = "WAR_MODE_NO_WAR" }
 }
 
 ###########################################################
